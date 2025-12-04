@@ -45,11 +45,11 @@ return [
 
     'enable_sell_in_diff_currency' => false,
     'currency_exchange_rate' => 1,
-    'orders_refresh_interval' => 600, //Auto refresh interval on Kitchen and Orders page in seconds,
+    'orders_refresh_interval' => env('ORDERS_REFRESH_INTERVAL', 60), //Auto refresh interval on Kitchen and Orders page in seconds,
 
     'default_date_format' => 'm/d/Y', //Default date format to be used if session is not set. All valid formats can be found on https://www.php.net/manual/en/function.date.php
 
-    'new_notification_count_interval' => 60, //Interval to check for new notifications in seconds;Default is 60sec
+    'new_notification_count_interval' => env('NEW_NOTIFICATION_COUNT_INTERVAL', 60), //Interval to check for new notifications in seconds;Default is 60sec
 
     'administrator_usernames' => env('ADMINISTRATOR_USERNAMES'),
     'allow_registration' => env('ALLOW_REGISTRATION', true),
