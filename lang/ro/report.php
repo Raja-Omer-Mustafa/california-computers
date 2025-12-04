@@ -18,7 +18,7 @@ return [
     'total_purchase' => 'Total Purchase',
     'purchase_inc_tax' => 'Purchase Including tax',
     'total_sell' => 'Total Sale',
-    'sell_inc_tax' => 'Sale Including tax',
+    'sell_inc_tax' => 'Sale Including tax Including discount',
     'purchase_due' => 'Purchase Due',
     'sell_due' => 'Sale Due',
     'overall' => 'Overall (Sale-Purchase)',
