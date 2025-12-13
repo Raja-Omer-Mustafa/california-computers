@@ -13,7 +13,7 @@
         	@if(empty($receipt_details->letter_head))
 				@if(!empty($receipt_details->logo))
 					<div class="text-box centered">
-						<img style="max-height: 100px; width: auto;" src="{{$receipt_details->logo}}" alt="Logo">
+						<img class="header-logo" style="max-height: 100px; width: auto;" src="{{$receipt_details->logo}}" alt="Logo">
 					</div>
 				@endif
 				<div class="text-box">
@@ -860,5 +860,12 @@ img {
 
 .bw {
 	word-break: break-word;
+}
+
+.header-logo {
+    display: block;
+    margin: 0 auto;
+    max-height: 80px;   /* ideal for 80mm printer */
+    max-width: 100%;
 }
 </style>
