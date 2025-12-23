@@ -6,11 +6,11 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Symfony\Component\Process\Process;
 use Illuminate\Support\Facades\Storage;
+use JmesPath\Env;
 
 class DatabaseBackupCommand extends Command
 {
     protected $signature = 'db:backup-external 
-    {path : External drive path}
     {db? : Database name (optional)}';
 
 
@@ -27,7 +27,7 @@ class DatabaseBackupCommand extends Command
         $dbUser = config('database.connections.mysql.username');
         $dbPass = config('database.connections.mysql.password');
 
-        $externalPath = rtrim($this->argument('path'), '/');
+        $externalPath = rtrim(env('EXTERNAL_DRIVE_PATH'), '/');
 
         if (!is_dir($externalPath) || !is_writable($externalPath)) {
             $this->error("External path not writable: {$externalPath}");
