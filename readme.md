@@ -30,3 +30,12 @@ php artisan db:backup
         - Go to the "Permissions" tab and select the `files.content.write` permission, then submit.
         ![File permission](image-1.png)
         - Create a folder named "database-backups" in your Dropbox home page.
+
+
+### Database backup to external storage
+1. Add external storage path to .env file.
+2. Run this command: 
+
+```bash
+php artisan db:backup-external
+```
