@@ -45,7 +45,7 @@ class DatabaseBackupCommand extends Command
            2. BUILD mysqldump COMMAND
         ------------------------- */
         $dumpCommand = [
-            'C:\wamp64\bin\mysql\mysql8.4.7\bin\mysqldump.exe',
+            'mysqldump',
             '--host=' . $dbHost,
             '--port=' . $dbPort,
             '--user=' . $dbUser,

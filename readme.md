@@ -39,3 +39,37 @@ php artisan db:backup
 ```bash
 php artisan db:backup-external
 ```
+
+### create a file and add the below text to it. Save it as database_backup.bat file.
+
+@echo off
+cd C:\laravel-project
+C:\xampp\php\php.exe artisan migrate --force
+
+Step 2: Create a Task in Task Scheduler
+
+Open Task Scheduler → Create Task.
+
+In General:
+
+Name: Laravel Migration
+
+Run whether user is logged in or not
+
+Check “Run with highest privileges” if needed.
+
+In Triggers:
+
+Add a trigger for the schedule you want (daily, hourly, etc.).
+
+In Actions:
+
+Action: Start a program
+
+Program/script: C:\scripts\migrate.bat
+
+In Conditions:
+
+Uncheck "Start the task only if the computer is on AC power" if you want it to run anytime.
+
+Click OK.
