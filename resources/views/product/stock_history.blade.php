@@ -55,59 +55,70 @@
 @endsection
 
 @section('javascript')
-   <script type="text/javascript">
-        $(document).ready( function(){
-            load_stock_history($('#variation_id').val(), $('#location_id').val());
+<script type="text/javascript">
+    let stockHistoryTable = null;
 
-            $('#product_id').select2({
-                ajax: {
-                    url: '/products/list-no-variation',
-                    dataType: 'json',
-                    delay: 250,
-                    data: function(params) {
-                        return {
-                            term: params.term, // search term
-                        };
-                    },
-                    processResults: function(data) {
-                        return {
-                            results: data,
-                        };
-                    },
+    $(document).ready(function () {
+
+        // Initial load
+        load_stock_history($('#variation_id').val(), $('#location_id').val());
+
+        // Product select (redirect)
+        $('#product_id').select2({
+            ajax: {
+                url: '/products/list-no-variation',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return { term: params.term };
                 },
-                minimumInputLength: 1,
-                escapeMarkup: function(m) {
-                    return m;
-                },
-            }).on('select2:select', function (e) {
-                var data = e.params.data;
-                window.location.href = "{{url('/')}}/products/stock-history/" + data.id
-            });
+                processResults: function (data) {
+                    return { results: data };
+                }
+            },
+            minimumInputLength: 1,
+            escapeMarkup: function (m) { return m; }
+        }).on('select2:select', function (e) {
+            let data = e.params.data;
+            window.location.href = "{{ url('/') }}/products/stock-history/" + data.id;
         });
 
-       function load_stock_history(variation_id, location_id) {
-            $('#product_stock_history').fadeOut();
-            $.ajax({
-                url: '/products/stock-history/' + variation_id + "?location_id=" + location_id,
-                dataType: 'html',
-                success: function(result) {
-                    $('#product_stock_history')
-                        .html(result)
-                        .fadeIn();
-
-                    __currency_convert_recursively($('#product_stock_history'));
-
-                    $('#stock_history_table').DataTable({
-                        searching: false,
-                        fixedHeader:false,
-                        ordering: false
-                    });
-                },
-            });
-       }
-
-       $(document).on('change', '#variation_id, #location_id', function(){
+        // Reload on variation or location change
+        $(document).on('change', '#variation_id, #location_id', function () {
             load_stock_history($('#variation_id').val(), $('#location_id').val());
-       });
-   </script>
+        });
+    });
+
+    function load_stock_history(variation_id, location_id) {
+        $('#product_stock_history').fadeOut();
+
+        $.ajax({
+            url: '/products/stock-history/' + variation_id + '?location_id=' + location_id,
+            dataType: 'html',
+            success: function (result) {
+
+                // Destroy DataTable if already initialized
+                if ($.fn.DataTable.isDataTable('#stock_history_table')) {
+                    $('#stock_history_table').DataTable().destroy();
+                }
+
+                // Replace HTML
+                $('#product_stock_history').html(result).fadeIn();
+
+                // Currency conversion
+                __currency_convert_recursively($('#product_stock_history'));
+
+                // Initialize DataTable
+                stockHistoryTable = $('#stock_history_table').DataTable({
+                    searching: false,
+                    ordering: false,
+                    fixedHeader: false,
+                    pageLength: 25,        // default rows per page
+                    lengthChange: true,    // show dropdown
+                    destroy: true
+                });
+            }
+        });
+    }
+</script>
 @endsection
