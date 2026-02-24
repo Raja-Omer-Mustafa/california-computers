@@ -12,6 +12,7 @@ php artisan db:seed --force
 ```bash
 mkdir -p storage/framework/views
 mkdir -p storage/framework/sessions
+mkdir -p storage/framework/cache
 ```
 
 ### Databse backup to Dropbox
