@@ -2927,11 +2927,19 @@ $(document).on('submit', 'form#add_expense_modal_form', function(e) {
 function get_contact_due(id) {
     $.ajax({
         method: 'get',
-        url: /get-contact-due/ + id,
-        dataType: 'text',
+        url: '/get-contact-due/' + id,
+        dataType: 'json', // <-- change to json
         success: function(result) {
-            if (result != '') {
-                $('.contact_due_text').find('span').text(result);
+            if (result.due != '') {
+                // Show due
+                $('.contact_due_text').find('span').html(
+                    'Due: ' + result.due
+                    + (result.last_payment_amount != '' 
+                        ? '<br><strong>Last Payment:</strong> ' + result.last_payment_amount 
+                        + (result.last_payment_date != '' ? ', <strong>Date:</strong> ' + result.last_payment_date : '')
+                        : ''
+                    )
+                );
                 $('.contact_due_text').removeClass('hide');
             } else {
                 $('.contact_due_text').find('span').text('');

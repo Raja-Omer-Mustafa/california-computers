@@ -18,7 +18,7 @@
 				value="{{ $walk_in_customer['selling_price_group_id'] ?? ''}}" >
 				@endif
 				{!! Form::select('contact_id', 
-					[], null, ['class' => 'form-control mousetrap', 'id' => 'customer_id', 'placeholder' => 'Enter Customer name / phone', 'required']); !!}
+					[], null, ['class' => 'form-control mousetrap customer-select', 'id' => 'customer_id', 'placeholder' => 'Enter Customer name / phone', 'required', 'data-allow-clear' => 'true']); !!}
 				<span class="input-group-btn">
 					<button type="button" class="btn btn-default bg-white btn-flat add_new_customer" data-name=""  @if(!auth()->user()->can('customer.create')) disabled @endif><i class="fa fa-plus-circle text-primary fa-lg"></i></button>
 				</span>
@@ -33,7 +33,7 @@
 					<button type="button" class="btn btn-default bg-white btn-flat" data-toggle="modal" data-target="#configure_search_modal" title="{{__('lang_v1.configure_product_search')}}"><i class="fas fa-search-plus"></i></button>
 				</div>
                 {{-- Removed mousetrap class as it was causing issue with barcode scanning --}}
-				{!! Form::text('search_product', null, ['class' => 'form-control', 'id' => 'search_product', 'placeholder' => __('lang_v1.search_product_placeholder'),
+				{!! Form::text('search_product', null, ['class' => 'form-control font-weight-bold', 'id' => 'search_product', 'placeholder' => __('lang_v1.search_product_placeholder'),
 				'disabled' => is_null($default_location)? true : false,
 				'autofocus' => is_null($default_location)? false : true,
 				]); !!}
@@ -218,10 +218,10 @@
 		<table class="table table-condensed table-bordered table-striped table-responsive" id="pos_table">
 			<thead>
 				<tr>
-					<th class="tex-center tw-text-sm md:!tw-text-base tw-font-bold @if(!empty($pos_settings['inline_service_staff'])) col-md-3 @else col-md-4 @endif">	
+					<th class="tex-center tw-text-md md:!tw-text-base tw-font-bold @if(!empty($pos_settings['inline_service_staff'])) col-md-3 @else col-md-4 @endif">	
 						@lang('sale.product') @show_tooltip(__('lang_v1.tooltip_sell_product_column'))
 					</th>
-					<th class="text-center tw-text-sm md:!tw-text-base tw-font-bold col-md-3">
+					<th class="text-center tw-text-md md:!tw-text-base tw-font-bold col-md-3">
 						@lang('sale.qty')
 					</th>
 					@if(!empty($pos_settings['inline_service_staff']))
@@ -242,3 +242,9 @@
 		</table>
 	</div>
 </div>
+
+<style>
+	.customer-select + .select2-container .select2-selection__rendered {
+    font-weight: 700 !important;
+}
+</style>

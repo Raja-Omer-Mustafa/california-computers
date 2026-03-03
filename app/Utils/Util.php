@@ -1267,9 +1267,58 @@ class Util
         }
 
         $contact_payments = $query->first();
+
         $due = $contact_payments->total_invoice + $contact_payments->total_purchase - $contact_payments->total_paid - $contact_payments->purchase_paid + $contact_payments->opening_balance - $contact_payments->opening_balance_paid;
 
         return $due;
+    }
+
+    /**
+     * Retrieves sum of due amount and last payment info of a contact
+     *
+     * @param  int  $contact_id
+     * @return mixed
+     */
+    public function getContactDueWithLastPayment($contact_id, $business_id = null)
+    {
+        $query = Contact::where('contacts.id', $contact_id)
+            ->join('transactions AS t', 'contacts.id', '=', 't.contact_id')
+            ->whereIn('t.type', ['sell', 'opening_balance', 'purchase'])
+            ->select(
+                DB::raw("SUM(IF(t.status = 'final' AND t.type = 'sell', final_total, 0)) as total_invoice"),
+                DB::raw("SUM(IF(t.type = 'purchase', final_total, 0)) as total_purchase"),
+                DB::raw("SUM(IF(t.status = 'final' AND t.type = 'sell', (SELECT SUM(IF(is_return = 1,-1*amount,amount)) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0)) as total_paid"),
+                DB::raw("SUM(IF(t.type = 'purchase', (SELECT SUM(amount) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0)) as purchase_paid"),
+                DB::raw("SUM(IF(t.type = 'opening_balance', final_total, 0)) as opening_balance"),
+                DB::raw("SUM(IF(t.type = 'opening_balance', (SELECT SUM(amount) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0)) as opening_balance_paid")
+            );
+        if (! empty($business_id)) {
+            $query->where('contacts.business_id', $business_id);
+        }
+
+        $contact_payments = $query->first();
+
+        $due = $contact_payments->total_invoice 
+            + $contact_payments->total_purchase 
+            - $contact_payments->total_paid 
+            - $contact_payments->purchase_paid 
+            + $contact_payments->opening_balance 
+            - $contact_payments->opening_balance_paid;
+
+        // Get last payment using paid_on
+        $last_payment = DB::table('transaction_payments as tp')
+            ->join('transactions as t', 'tp.transaction_id', '=', 't.id')
+            ->where('t.contact_id', $contact_id)
+            ->when($business_id, fn($q) => $q->where('t.business_id', $business_id))
+            ->orderBy('tp.paid_on', 'desc') // <-- using paid_on column
+            ->select('tp.amount', 'tp.paid_on')
+            ->first();
+
+        return [
+            'due' => $due,
+            'last_payment_amount' => $last_payment->amount ?? 0,
+            'last_payment_date' => $last_payment->paid_on ?? null,
+        ];
     }
 
     public function getDays()

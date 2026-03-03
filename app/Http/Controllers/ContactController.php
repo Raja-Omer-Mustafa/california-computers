@@ -16,6 +16,7 @@ use App\Utils\ModuleUtil;
 use App\Utils\NotificationUtil;
 use App\Utils\TransactionUtil;
 use App\Utils\Util;
+use Carbon\Carbon;
 use DB;
 use Excel;
 use Illuminate\Http\Request;
@@ -930,8 +931,29 @@ class ContactController extends Controller
 
             $contacts->select(
                 'contacts.id',
-                DB::raw("IF(contacts.contact_id IS NULL OR contacts.contact_id='', contacts.name, CONCAT(contacts.name, ' (', contacts.contact_id, ')')) AS text"),
-                'mobile',
+                DB::raw("
+                    CASE 
+                        WHEN 
+                            (COALESCE(contacts.supplier_business_name, contacts.name) IS NOT NULL 
+                            AND COALESCE(contacts.supplier_business_name, contacts.name) != '')
+                            AND contacts.contact_id IS NOT NULL 
+                            AND contacts.contact_id != ''
+                        THEN CONCAT(
+                            COALESCE(NULLIF(contacts.supplier_business_name, ''), contacts.name),
+                            ' (',
+                            contacts.contact_id,
+                            ')'
+                        )
+
+                        WHEN COALESCE(NULLIF(contacts.supplier_business_name, ''), contacts.name) IS NOT NULL
+                        THEN COALESCE(NULLIF(contacts.supplier_business_name, ''), contacts.name)
+
+                        WHEN contacts.contact_id IS NOT NULL AND contacts.contact_id != ''
+                        THEN contacts.contact_id
+
+                        ELSE 'Unknown Customer'
+                    END AS text
+                "),                'mobile',
                 'address_line_1',
                 'address_line_2',
                 'city',
@@ -1647,11 +1669,25 @@ class ContactController extends Controller
     {
         if (request()->ajax()) {
             $business_id = request()->session()->get('user.business_id');
-            $due = $this->transactionUtil->getContactDue($contact_id, $business_id);
 
-            $output = $due != 0 ? $this->transactionUtil->num_f($due, true) : '';
+            // Get due info including last payment
+            $due_info = $this->transactionUtil->getContactDueWithLastPayment($contact_id, $business_id);
 
-            return $output;
+            // Format numbers
+            $due_text = $due_info['due'] != 0 ? $this->transactionUtil->num_f($due_info['due'], true) : '';
+            $last_payment_text = $due_info['last_payment_amount'] != 0 
+                ? $this->transactionUtil->num_f($due_info['last_payment_amount'], true) 
+                : '';
+            $last_payment_date = $due_info['last_payment_date'] ?? '';
+            if ($last_payment_date) {
+                $last_payment_date = Carbon::parse($last_payment_date)->format('Y-m-d');
+            }
+            // Return JSON
+            return response()->json([
+                'due' => $due_text,
+                'last_payment_amount' => $last_payment_text,
+                'last_payment_date' => $last_payment_date,
+            ]);
         }
     }
 
