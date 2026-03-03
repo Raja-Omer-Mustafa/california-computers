@@ -1267,9 +1267,28 @@ class Util
         }
 
         $contact_payments = $query->first();
-        $due = $contact_payments->total_invoice + $contact_payments->total_purchase - $contact_payments->total_paid - $contact_payments->purchase_paid + $contact_payments->opening_balance - $contact_payments->opening_balance_paid;
 
-        return $due;
+        $due = $contact_payments->total_invoice 
+            + $contact_payments->total_purchase 
+            - $contact_payments->total_paid 
+            - $contact_payments->purchase_paid 
+            + $contact_payments->opening_balance 
+            - $contact_payments->opening_balance_paid;
+
+        // Get last payment using paid_on
+        $last_payment = DB::table('transaction_payments as tp')
+            ->join('transactions as t', 'tp.transaction_id', '=', 't.id')
+            ->where('t.contact_id', $contact_id)
+            ->when($business_id, fn($q) => $q->where('t.business_id', $business_id))
+            ->orderBy('tp.paid_on', 'desc') // <-- using paid_on column
+            ->select('tp.amount', 'tp.paid_on')
+            ->first();
+
+        return [
+            'due' => $due,
+            'last_payment_amount' => $last_payment->amount ?? 0,
+            'last_payment_date' => $last_payment->paid_on ?? null,
+        ];
     }
 
     public function getDays()

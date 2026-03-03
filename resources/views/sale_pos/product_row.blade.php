@@ -27,7 +27,7 @@
 
 		@if( ($edit_price || $edit_discount) && empty($is_direct_sell) )
 		<div title="@lang('lang_v1.pos_edit_product_price_help')" style="display: inline">
-		<span class="text-link text-info cursor-pointer" data-toggle="modal" data-target="#row_edit_product_price_modal_{{$row_count}}">
+		<span class="text-link text-info cursor-pointer tw-font-bold" data-toggle="modal" data-target="#row_edit_product_price_modal_{{$row_count}}">
 			{!! $product_name !!}
 			&nbsp;<i class="fa fa-info-circle"></i>
 		</span>
