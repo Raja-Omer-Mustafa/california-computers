@@ -1671,7 +1671,7 @@ class ContactController extends Controller
             $business_id = request()->session()->get('user.business_id');
 
             // Get due info including last payment
-            $due_info = $this->transactionUtil->getContactDue($contact_id, $business_id);
+            $due_info = $this->transactionUtil->getContactDueWithLastPayment($contact_id, $business_id);
 
             // Format numbers
             $due_text = $due_info['due'] != 0 ? $this->transactionUtil->num_f($due_info['due'], true) : '';
