@@ -217,6 +217,7 @@
             </a>
             <a href="{{ action([\App\Http\Controllers\ContactController::class, 'index']) }}?type=customer"
                 title="{{ __('lang_v1.customers') }}"
+                target="blank"
                 class="tw-shadow-[rgba(17,_17,_26,_0.1)_0px_0px_16px] tw-bg-white hover:tw-bg-white/60 tw-cursor-pointer tw-border-2 tw-flex tw-items-center tw-justify-center tw-rounded-md md:tw-w-8 tw-w-auto tw-h-8 tw-text-gray-600 pull-right ml-2">
                 <strong class="!tw-m-3">
                     <i class="fa fa-users fa-lg tw-text-[#009EE4] !tw-text-sm"></i>
