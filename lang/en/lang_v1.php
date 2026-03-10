@@ -1549,6 +1549,6 @@ return [
     'cogs' => 'COGS:',
     'cogs_help_text' => 'Cost of Goods Sold = Starting inventory(opening stock) + purchases − ending inventory(closing stock)',
     'overall_summary' => 'Overall Summary',
-    'last_payment' => 'Last Payment',
+    'last_payment_date' => 'Last Payment Date',
     'last_payment_amount' => 'Last Payment Amount',
 ];

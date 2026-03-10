@@ -413,7 +413,7 @@ $(document).ready(function() {
             { data: 'due', searchable: false, orderable: false },
             { data: 'balance', searchable: false },
             { data: 'last_payment_amount', name: 'last_payment_amount' },
-            { data: 'last_payment', name: 'last_payment' }
+            { data: 'last_payment_date', name: 'last_payment_date' }
         ];
     }
     

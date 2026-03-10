@@ -167,7 +167,7 @@
                                     <th>@lang('contact.total_sale_due')</th>
                                     <th>@lang('lang_v1.advance_balance')</th>
                                     <th>@lang('lang_v1.last_payment_amount')</th>
-                                    <th>@lang('lang_v1.last_payment')</th>
+                                    <th>@lang('lang_v1.last_payment_date')</th>
                                 @endif
                                 @if ($type == 'supplier')
                                 @php
