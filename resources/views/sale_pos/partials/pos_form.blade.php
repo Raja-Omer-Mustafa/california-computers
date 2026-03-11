@@ -230,7 +230,7 @@
 						</th>
 					@endif
 					<th class="text-center tw-text-sm md:!tw-text-base tw-font-bold col-md-2 {{$hide_tax}}">
-						@lang('sale.price_inc_tax')
+						@lang('sale.unit_price')
 					</th>
 					<th class="text-center tw-text-sm md:!tw-text-base tw-font-bold col-md-2">
 						@lang('sale.subtotal')
