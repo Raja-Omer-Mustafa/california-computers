@@ -414,6 +414,16 @@
 				@endforeach
 			@endif
 
+			@if(!empty($receipt_details->all_due))
+			<tr>
+				<th>
+					{!! $receipt_details->all_bal_label !!}
+				</th>
+				<td class="text-right">
+					{{$receipt_details->all_due}}
+				</td>
+			</tr>
+			@endif
 			<!-- Total Paid-->
 			@if(!empty($receipt_details->total_paid))
 				<tr>
@@ -438,16 +448,19 @@
 			</tr>
 			@endif
 
-			@if(!empty($receipt_details->all_due))
+			<!-- Total invoice-->
+			@if(!empty($receipt_details->total_invoice) && !empty($receipt_details->total_invoice))
 			<tr>
 				<th>
-					{!! $receipt_details->all_bal_label !!}
+					Total Balance
 				</th>
 				<td class="text-right">
-					{{$receipt_details->all_due}}
+					{{$receipt_details->total_invoice}}
 				</td>
 			</tr>
 			@endif
+
+			
 		</table>
 	</div>
 
