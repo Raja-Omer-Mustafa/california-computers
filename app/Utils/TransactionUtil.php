@@ -1487,9 +1487,11 @@ class TransactionUtil extends Util
 
             if ($il->show_previous_bal == 1) {
                 $all_due = $this->getContactDue($transaction->contact_id);
+                $total_invoice = $due + $all_due;
                 if (! empty($all_due)) {
                     $output['all_bal_label'] = $il->prev_bal_label;
                     $output['all_due'] = $this->num_f($all_due, $show_currency, $business_details);
+                    $output['total_invoice'] = $this->num_f($total_invoice, $show_currency, $business_details);
                 }
             }
 
