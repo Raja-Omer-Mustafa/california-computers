@@ -437,7 +437,7 @@
 			@endif
 
 			<!-- Total Due-->
-			@if(!empty($receipt_details->total_due) && !empty($receipt_details->total_due_label))
+			@if(isset($receipt_details->total_due_label))
 			<tr>
 				<th>
 					{!! $receipt_details->total_due_label !!}
@@ -449,7 +449,7 @@
 			@endif
 
 			<!-- Total invoice-->
-			@if(!empty($receipt_details->total_invoice) && !empty($receipt_details->total_invoice))
+			@if(!empty($receipt_details->total_invoice)))
 			<tr>
 				<th>
 					Total Balance
