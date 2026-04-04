@@ -36,7 +36,7 @@ class DatabaseBackupCommand extends Command
 
         $timestamp = now()->format('Y-m-d_H-i-s');
         $filename  = "{$dbName}_backup_{$timestamp}.sql";
-        $fullPath  = "{$externalPath}\\{$filename}";
+        $fullPath  = "{$externalPath}/{$filename}";
 
         $this->info("Starting backup of database: {$dbName}");
         $this->info("Saving to: {$fullPath}");
