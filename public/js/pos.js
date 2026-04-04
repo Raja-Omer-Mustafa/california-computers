@@ -150,6 +150,7 @@ $(document).ready(function() {
         if ($('.contact_due_text').length) {
             get_contact_due(data.id);
         }
+        $('#search_product').focus();
     });
 
     set_default_customer();
