@@ -372,7 +372,7 @@ class ContactController extends Controller
                 'return_due',
                 '<span class="return_due" data-orig-value="{{$total_sell_return - $sell_return_paid}}" data-highlight=false>@format_currency($total_sell_return - $sell_return_paid)</span>'
             )
-            ->addColumn('last_payment', function ($row) {
+            ->addColumn('last_payment_date', function ($row) {
                 return $row->last_payment_date ? \Carbon\Carbon::parse($row->last_payment_date)->format('Y-m-d') : '';
             })
             ->addColumn('last_payment_amount', function ($row) {
