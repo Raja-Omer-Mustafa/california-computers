@@ -449,7 +449,7 @@
 			@endif
 
 			<!-- Total invoice-->
-			@if(!empty($receipt_details->total_invoice)))
+			@if(!empty($receipt_details->total_invoice))
 			<tr>
 				<th>
 					Total Balance
