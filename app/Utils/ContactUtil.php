@@ -256,7 +256,7 @@ class ContactUtil extends Util
                 DB::raw("SUM(IF(t.type = 'sell_return', final_total, 0)) as total_sell_return"),
                 DB::raw("SUM(IF(t.type = 'sell_return', (SELECT SUM(amount) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0)) as sell_return_paid"),
                 DB::raw("(SELECT MAX(tp.paid_on) FROM transaction_payments tp INNER JOIN transactions t2 ON tp.transaction_id = t2.id WHERE t2.contact_id = contacts.id AND t2.business_id = $business_id AND t2.type IN ('sell', 'sell_return')) as last_payment_date"),
-                DB::raw("(SELECT tp.amount FROM transaction_payments tp INNER JOIN transactions t2 ON tp.transaction_id = t2.id WHERE t2.contact_id = contacts.id AND t2.business_id = $business_id AND t2.type IN ('sell', 'sell_return') ORDER BY tp.paid_on DESC LIMIT 1) as last_payment_amount"),
+                DB::raw("(SELECT tp.amount FROM transaction_payments tp INNER JOIN transactions t2 ON tp.transaction_id = t2.id WHERE t2.contact_id = contacts.id AND t2.business_id = $business_id AND t2.type IN ('sell', 'sell_return') ORDER BY tp.id DESC LIMIT 1) as last_payment_amount"),
             ]);
         }
         $query->groupBy('contacts.id');
