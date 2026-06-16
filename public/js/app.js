@@ -2828,12 +2828,15 @@ function submitContactForm(form) {
 $(document).on('submit', 'form#pay_contact_due_form', function(e){
     var is_valid = true;
     var payment_type = $('#pay_contact_due_form .payment_types_dropdown').val();
-    var denomination_for_payment_types = JSON.parse($('#pay_contact_due_form .enable_cash_denomination_for_payment_methods').val());
-    if (denomination_for_payment_types.includes(payment_type) && $('#pay_contact_due_form .is_strict').length && $('#pay_contact_due_form .is_strict').val() === '1' ) {
-        var payment_amount = __read_number($('#pay_contact_due_form .payment_amount'));
-        var total_denomination = $('#pay_contact_due_form').find('input.denomination_total_amount').val();
-        if (payment_amount != total_denomination ) {
-            is_valid = false;
+    var rawValue = $('#pay_contact_due_form .enable_cash_denomination_for_payment_methods').val();
+    if (typeof rawValue != 'undefined') {
+        var denomination_for_payment_types = JSON.parse($('#pay_contact_due_form .enable_cash_denomination_for_payment_methods').val());
+        if (denomination_for_payment_types.includes(payment_type) && $('#pay_contact_due_form .is_strict').length && $('#pay_contact_due_form .is_strict').val() === '1' ) {
+            var payment_amount = __read_number($('#pay_contact_due_form .payment_amount'));
+            var total_denomination = $('#pay_contact_due_form').find('input.denomination_total_amount').val();
+            if (payment_amount != total_denomination ) {
+                is_valid = false;
+            }
         }
     }
 
