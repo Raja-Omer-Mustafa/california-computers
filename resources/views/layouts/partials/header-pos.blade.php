@@ -356,6 +356,22 @@
                     </a>
                 @endcan
             @endif
+            @if (auth()->user()->hasAnyPermission(['sell.view']))
+                <a href="{{ action([\App\Http\Controllers\SellController::class, 'index']) }}"
+                    title="@lang('lang_v1.all_sales')"
+                    target="_blank"
+                    class="tw-shadow-[rgba(17,_17,_26,_0.1)_0px_0px_16px] tw-bg-white hover:tw-bg-white/60 tw-cursor-pointer tw-border-2 tw-w-auto tw-h-auto tw-py-1 tw-px-4 tw-rounded-md pull-right">
+                    <strong><i class="fa fa-shopping-cart tw-text-[#009EE4] !tw-text-sm"></i> @lang('lang_v1.all_sales')</strong>
+                </a>
+            @endif
+            @if (auth()->user()->can('account.access') && in_array('account', $enabled_modules))
+                <a href="{{ action([\App\Http\Controllers\AccountController::class, 'index']) }}"
+                    title="@lang('lang_v1.payment_accounts')"
+                    target="_blank"
+                    class="tw-shadow-[rgba(17,_17,_26,_0.1)_0px_0px_16px] tw-bg-white hover:tw-bg-white/60 tw-cursor-pointer tw-border-2 tw-w-auto tw-h-auto tw-py-1 tw-px-4 tw-rounded-md pull-right">
+                    <strong><i class="fa fa-university tw-text-[#646EE4] !tw-text-sm"></i> @lang('lang_v1.payment_accounts')</strong>
+                </a>
+            @endif
             @can('expense.add')
                 <button type="button" title="{{ __('expense.add_expense') }}" data-placement="bottom"
                     class="tw-shadow-[rgba(17,_17,_26,_0.1)_0px_0px_16px] tw-bg-white hover:tw-bg-white/60 tw-cursor-pointer tw-border-2 tw-w-auto tw-h-auto tw-py-1 tw-px-4 tw-rounded-md btn-modal pull-right"
