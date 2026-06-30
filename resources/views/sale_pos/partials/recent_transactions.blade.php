@@ -10,17 +10,22 @@
 @if(!empty($transactions))
 	<table class="table">
 		@foreach ($transactions as $transaction)
+			@php
+				$customer_name = ! empty($transaction->contact?->supplier_business_name)
+					? $transaction->contact->supplier_business_name
+					: ($transaction->contact?->name ?? '');
+			@endphp
 			<tr class="cursor-pointer" 
-	    		title="Customer: {{$transaction->contact?->name}} 
-		    		@if(!empty($transaction->contact->mobile) && $transaction->contact->is_default == 0)
-		    			<br/>Mobile: {{$transaction->contact->mobile}}
+	    		title="Customer: {{ $customer_name }} 
+		    		@if(!empty($transaction->contact?->mobile) && $transaction->contact?->is_default == 0)
+		    			<br/>Mobile: {{ $transaction->contact->mobile }}
 		    		@endif
 	    		" >
 				<td>
 					{{ $loop->iteration}}.
 				</td>
 				<td class="col-md-4">
-					{{ $transaction->invoice_no }} ({{$transaction->contact?->name}})
+					{{ $transaction->invoice_no }} ({{ $customer_name }})
 					@if(!empty($transaction->table))
 						- {{$transaction->table->name}}
 					@endif
