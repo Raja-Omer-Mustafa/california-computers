@@ -356,7 +356,7 @@
                     </a>
                 @endcan
             @endif
-            @if (auth()->user()->hasAnyPermission(['sell.view']))
+            @if (auth()->user()->hasAnyPermission(['sell.view']) || auth()->user()->can('superadmin') || auth()->user()->can('admin'))
                 <a href="{{ action([\App\Http\Controllers\SellController::class, 'index']) }}"
                     title="@lang('lang_v1.all_sales')"
                     target="_blank"
@@ -364,7 +364,7 @@
                     <strong><i class="fa fa-shopping-cart tw-text-[#009EE4] !tw-text-sm"></i> @lang('lang_v1.all_sales')</strong>
                 </a>
             @endif
-            @if (auth()->user()->can('account.access') && in_array('account', $enabled_modules))
+            @if ((auth()->user()->can('account.access')  || auth()->user()->can('superadmin') || auth()->user()->can('admin')) && in_array('account', $enabled_modules))
                 <a href="{{ action([\App\Http\Controllers\AccountController::class, 'index']) }}"
                     title="@lang('lang_v1.payment_accounts')"
                     target="_blank"
