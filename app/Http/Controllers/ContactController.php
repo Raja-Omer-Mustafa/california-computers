@@ -364,10 +364,24 @@ class ContactController extends Controller
 
         $contacts = Datatables::of($query)
             ->addColumn('address', '{{implode(", ", array_filter([$address_line_1, $address_line_2, $city, $state, $country, $zip_code]))}}')
-            ->addColumn(
-                'due',
-                '<span class="contact_due" data-orig-value="{{$total_invoice - $invoice_received - $total_ledger_discount}}" data-highlight=true>@format_currency($total_invoice - $invoice_received - $total_ledger_discount)</span>'
-            )
+            ->addColumn('due', function ($row) {
+                $total_ledger_discount_sell = $row->total_ledger_discount_sell ?? 0;
+                $total_ledger_discount_purchase = $row->total_ledger_discount_purchase ?? 0;
+                $total_purchase = $row->total_purchase ?? 0;
+                $purchase_paid = $row->purchase_paid ?? 0;
+                $total_purchase_return = $row->total_purchase_return ?? 0;
+                $purchase_return_paid = $row->purchase_return_paid ?? 0;
+
+                $due = ($row->total_invoice - $row->invoice_received - $total_ledger_discount_sell)
+                    - ($total_purchase - $purchase_paid - $total_ledger_discount_purchase)
+                    - ($row->total_sell_return - $row->sell_return_paid)
+                    + ($total_purchase_return - $purchase_return_paid)
+                    + ($row->opening_balance - $row->opening_balance_paid);
+
+                $due_formatted = $this->transactionUtil->num_f($due, true);
+
+                return '<span class="contact_due" data-orig-value="'.$due.'" data-highlight=true>'.$due_formatted.'</span>';
+            })
             ->addColumn(
                 'return_due',
                 '<span class="return_due" data-orig-value="{{$total_sell_return - $sell_return_paid}}" data-highlight=false>@format_currency($total_sell_return - $sell_return_paid)</span>'
@@ -1354,9 +1368,11 @@ class ContactController extends Controller
                     ->with(compact('ledger_details', 'contact', 'for_pdf', 'location'))->render();
             }
 
+            $css = file_get_contents(public_path('css/app.css'));
             $mpdf = $this->getMpdf();
-            $mpdf->WriteHTML($html);
-            $mpdf->Output($output_file_name, 'I');
+            $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
+            $mpdf->WriteHTML($html, \Mpdf\HTMLParserMode::HTML_BODY);
+            return $mpdf->Output($output_file_name, 'I');
         }
 
         if ($format == 'format_2') {

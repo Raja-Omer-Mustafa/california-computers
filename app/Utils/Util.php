@@ -9,6 +9,7 @@ use App\Product;
 use App\ReferenceCount;
 use App\System;
 use App\Transaction;
+use App\TransactionPayment;
 use App\TransactionSellLine;
 use App\Unit;
 use App\User;
@@ -1244,6 +1245,70 @@ class Util
     }
 
     /**
+     * Calculates contact balance due using ledger format 3 logic (all-time).
+     *
+     * @param  int  $contact_id
+     * @param  int|null  $business_id
+     * @return float
+     */
+    protected function calculateContactBalanceDue($contact_id, $business_id = null)
+    {
+        if (empty($business_id)) {
+            $business_id = request()->session()->get('user.business_id');
+        }
+
+        $transaction_type_keys = array_keys(Transaction::transactionTypes());
+
+        $transaction_sums = Transaction::where('contact_id', $contact_id)
+            ->where('business_id', $business_id)
+            ->where('status', '!=', 'draft')
+            ->whereIn('type', $transaction_type_keys)
+            ->select(
+                DB::raw("SUM(IF(type = 'purchase', final_total, 0)) as total_purchase"),
+                DB::raw("SUM(IF(type = 'sell' AND status = 'final', final_total, 0)) as total_invoice"),
+                DB::raw("SUM(IF(type = 'sell_return', final_total, 0)) as total_sell_return"),
+                DB::raw("SUM(IF(type = 'purchase_return', final_total, 0)) as total_purchase_return"),
+                DB::raw("SUM(IF(type = 'opening_balance', final_total, 0)) as total_opening_balance"),
+                DB::raw("SUM(IF(type = 'ledger_discount', final_total, 0)) as total_ledger_discount")
+            )
+            ->first();
+
+        $total_invoice = $transaction_sums->total_invoice - $transaction_sums->total_sell_return;
+        $total_purchase = $transaction_sums->total_purchase - $transaction_sums->total_purchase_return;
+        $opening_balance = $transaction_sums->total_opening_balance;
+        $ledger_discount = $transaction_sums->total_ledger_discount;
+
+        $payments = TransactionPayment::leftJoin(
+            'transactions as t',
+            'transaction_payments.transaction_id',
+            '=',
+            't.id'
+        )
+            ->where('transaction_payments.payment_for', $contact_id)
+            ->where(function ($query) {
+                $query->whereNull('t.type')
+                    ->orWhere('t.type', '!=', 'expense');
+            })
+            ->select('transaction_payments.*', 't.type as transaction_type')
+            ->get();
+
+        $total_invoice_paid = $payments->where('transaction_type', 'sell')->where('is_return', 0)->sum('amount');
+        $opening_balance_paid = $payments->where('transaction_type', 'opening_balance')->where('is_return', 0)->sum('amount');
+        $total_sell_change_return = $payments->where('transaction_type', 'sell')->where('is_return', 1)->sum('amount');
+        $total_sell_change_return = ! empty($total_sell_change_return) ? $total_sell_change_return : 0;
+        $total_invoice_paid -= $total_sell_change_return;
+        $total_invoice_paid += $opening_balance_paid;
+
+        $total_purchase_paid = $payments->where('transaction_type', 'purchase')->where('is_return', 0)->sum('amount');
+        $total_sell_return_paid = $payments->where('transaction_type', 'sell_return')->sum('amount');
+        $total_purchase_return_paid = $payments->where('transaction_type', 'purchase_return')->sum('amount');
+
+        $total_transactions_paid = $total_invoice_paid + $total_purchase_paid - $total_sell_return_paid - $total_purchase_return_paid;
+
+        return $total_invoice + $total_purchase - $total_transactions_paid + $opening_balance - $ledger_discount;
+    }
+
+    /**
      * Retrieves sum of due amount of a contact
      *
      * @param  int  $contact_id
@@ -1251,26 +1316,7 @@ class Util
      */
     public function getContactDue($contact_id, $business_id = null)
     {
-        $query = Contact::where('contacts.id', $contact_id)
-            ->join('transactions AS t', 'contacts.id', '=', 't.contact_id')
-            ->whereIn('t.type', ['sell', 'opening_balance', 'purchase'])
-            ->select(
-                DB::raw("SUM(IF(t.status = 'final' AND t.type = 'sell', final_total, 0)) as total_invoice"),
-                DB::raw("SUM(IF(t.type = 'purchase', final_total, 0)) as total_purchase"),
-                DB::raw("SUM(IF(t.status = 'final' AND t.type = 'sell', (SELECT SUM(IF(is_return = 1,-1*amount,amount)) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0)) as total_paid"),
-                DB::raw("SUM(IF(t.type = 'purchase', (SELECT SUM(amount) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0)) as purchase_paid"),
-                DB::raw("SUM(IF(t.type = 'opening_balance', final_total, 0)) as opening_balance"),
-                DB::raw("SUM(IF(t.type = 'opening_balance', (SELECT SUM(amount) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0)) as opening_balance_paid")
-            );
-        if (! empty($business_id)) {
-            $query->where('contacts.business_id', $business_id);
-        }
-
-        $contact_payments = $query->first();
-
-        $due = $contact_payments->total_invoice + $contact_payments->total_purchase - $contact_payments->total_paid - $contact_payments->purchase_paid + $contact_payments->opening_balance - $contact_payments->opening_balance_paid;
-
-        return $due;
+        return $this->calculateContactBalanceDue($contact_id, $business_id);
     }
 
     /**
@@ -1281,37 +1327,18 @@ class Util
      */
     public function getContactDueWithLastPayment($contact_id, $business_id = null)
     {
-        $query = Contact::where('contacts.id', $contact_id)
-            ->join('transactions AS t', 'contacts.id', '=', 't.contact_id')
-            ->whereIn('t.type', ['sell', 'opening_balance', 'purchase'])
-            ->select(
-                DB::raw("SUM(IF(t.status = 'final' AND t.type = 'sell', final_total, 0)) as total_invoice"),
-                DB::raw("SUM(IF(t.type = 'purchase', final_total, 0)) as total_purchase"),
-                DB::raw("SUM(IF(t.status = 'final' AND t.type = 'sell', (SELECT SUM(IF(is_return = 1,-1*amount,amount)) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0)) as total_paid"),
-                DB::raw("SUM(IF(t.type = 'purchase', (SELECT SUM(amount) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0)) as purchase_paid"),
-                DB::raw("SUM(IF(t.type = 'opening_balance', final_total, 0)) as opening_balance"),
-                DB::raw("SUM(IF(t.type = 'opening_balance', (SELECT SUM(amount) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0)) as opening_balance_paid")
-            );
-        if (! empty($business_id)) {
-            $query->where('contacts.business_id', $business_id);
+        if (empty($business_id)) {
+            $business_id = request()->session()->get('user.business_id');
         }
 
-        $contact_payments = $query->first();
+        $due = $this->calculateContactBalanceDue($contact_id, $business_id);
 
-        $due = $contact_payments->total_invoice 
-            + $contact_payments->total_purchase 
-            - $contact_payments->total_paid 
-            - $contact_payments->purchase_paid 
-            + $contact_payments->opening_balance 
-            - $contact_payments->opening_balance_paid;
-
-        // Get last payment using paid_on
-        $last_payment = DB::table('transaction_payments as tp')
-            ->join('transactions as t', 'tp.transaction_id', '=', 't.id')
-            ->where('t.contact_id', $contact_id)
-            ->when($business_id, fn($q) => $q->where('t.business_id', $business_id))
-            ->orderBy('tp.paid_on', 'desc') // <-- using paid_on column
-            ->select('tp.amount', 'tp.paid_on')
+        $last_payment = TransactionPayment::where('payment_for', $contact_id)
+            ->where('business_id', $business_id)
+            ->where('payment_type', 'credit')
+            ->orderBy('paid_on', 'desc')
+            ->orderBy('id', 'desc')
+            ->select('amount', 'paid_on')
             ->first();
 
         return [

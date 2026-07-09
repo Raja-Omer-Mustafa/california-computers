@@ -237,6 +237,8 @@ class ContactUtil extends Util
             DB::raw("SUM(IF(t.type = 'opening_balance', (SELECT SUM(IF(is_return = 1,-1*amount,amount)) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0)) as opening_balance_paid"),
             DB::raw('MAX(DATE(transaction_date)) as max_transaction_date'),
             DB::raw("SUM(IF(t.type = 'ledger_discount', final_total, 0)) as total_ledger_discount"),
+            DB::raw("SUM(IF(t.type = 'ledger_discount' AND sub_type='sell_discount', final_total, 0)) as total_ledger_discount_sell"),
+            DB::raw("SUM(IF(t.type = 'ledger_discount' AND sub_type='purchase_discount', final_total, 0)) as total_ledger_discount_purchase"),
             't.transaction_date',
         ]);
 
@@ -255,8 +257,8 @@ class ContactUtil extends Util
                 DB::raw("SUM(IF(t.type = 'sell' AND t.status = 'final', COALESCE((SELECT SUM(IF(is_return = 1,-1*amount,amount)) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0), 0)) as invoice_received"),
                 DB::raw("SUM(IF(t.type = 'sell_return', final_total, 0)) as total_sell_return"),
                 DB::raw("SUM(IF(t.type = 'sell_return', (SELECT SUM(amount) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0)) as sell_return_paid"),
-                DB::raw("(SELECT MAX(tp.paid_on) FROM transaction_payments tp INNER JOIN transactions t2 ON tp.transaction_id = t2.id WHERE t2.contact_id = contacts.id AND t2.business_id = $business_id AND t2.type IN ('sell', 'sell_return')) as last_payment_date"),
-                DB::raw("(SELECT tp.amount FROM transaction_payments tp INNER JOIN transactions t2 ON tp.transaction_id = t2.id WHERE t2.contact_id = contacts.id AND t2.business_id = $business_id AND t2.type IN ('sell', 'sell_return') ORDER BY tp.id DESC LIMIT 1) as last_payment_amount"),
+                DB::raw("(SELECT MAX(tp.paid_on) FROM transaction_payments tp WHERE tp.payment_for = contacts.id AND tp.business_id = $business_id AND tp.payment_type = 'credit') as last_payment_date"),
+                DB::raw("(SELECT tp.amount FROM transaction_payments tp WHERE tp.payment_for = contacts.id AND tp.business_id = $business_id AND tp.payment_type = 'credit' ORDER BY tp.paid_on DESC, tp.id DESC LIMIT 1) as last_payment_amount"),
             ]);
         }
         $query->groupBy('contacts.id');

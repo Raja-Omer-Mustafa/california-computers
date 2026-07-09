@@ -72,6 +72,8 @@
                             <th>@lang('lang_v1.total_sell_return')</th>
                             <th>@lang('lang_v1.opening_balance_due')</th>
                             <th>@lang('report.total_due') &nbsp;&nbsp;<i class="fa fa-info-circle text-info no-print" data-toggle="tooltip" data-placement="bottom" data-html="true" data-original-title="{{ __('messages.due_tooltip')}}" aria-hidden="true"></i></th>
+                            <th>@lang('lang_v1.last_payment_amount')</th>
+                            <th>@lang('lang_v1.last_payment_date')</th>
                         </tr>
                     </thead>
                     <tfoot>
@@ -83,6 +85,8 @@
                             <td><span class="display_currency" id="footer_total_sell_return" data-currency_symbol ="true"></span></td>
                             <td><span class="display_currency" id="footer_total_opening_bal_due" data-currency_symbol ="true"></span></td>
                             <td><span class="display_currency" id="footer_total_due" data-currency_symbol ="true"></span></td>
+                            <td></td>
+                            <td></td>
                         </tr>
                     </tfoot>
                 </table>

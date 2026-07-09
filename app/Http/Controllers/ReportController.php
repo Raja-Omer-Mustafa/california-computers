@@ -213,6 +213,8 @@ class ReportController extends Controller
                     DB::raw("SUM(IF(t.type = 'opening_balance', (SELECT SUM(IF(is_return = 1,-1*amount,amount)) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0)) as opening_balance_paid"),
                     DB::raw("SUM(IF(t.type = 'ledger_discount' AND sub_type='sell_discount', final_total, 0)) as total_ledger_discount_sell"),
                     DB::raw("SUM(IF(t.type = 'ledger_discount' AND sub_type='purchase_discount', final_total, 0)) as total_ledger_discount_purchase"),
+                    DB::raw("(SELECT MAX(tp.paid_on) FROM transaction_payments tp WHERE tp.payment_for = contacts.id AND tp.business_id = $business_id AND tp.payment_type = 'credit') as last_payment_date"),
+                    DB::raw("(SELECT tp.amount FROM transaction_payments tp WHERE tp.payment_for = contacts.id AND tp.business_id = $business_id AND tp.payment_type = 'credit' ORDER BY tp.paid_on DESC, tp.id DESC LIMIT 1) as last_payment_amount"),
                     'contacts.supplier_business_name',
                     'contacts.name',
                     'contacts.id',
@@ -294,6 +296,16 @@ class ReportController extends Controller
                     'opening_balance_due',
                     '<span class="opening_balance_due" data-orig-value="{{$opening_balance - $opening_balance_paid}}">@format_currency($opening_balance - $opening_balance_paid)</span>'
                 )
+                ->editColumn('last_payment_date', function ($row) {
+                    return $row->last_payment_date ? \Carbon\Carbon::parse($row->last_payment_date)->format('Y-m-d') : '';
+                })
+                ->editColumn('last_payment_amount', function ($row) {
+                    if (empty($row->last_payment_amount)) {
+                        return '';
+                    }
+
+                    return '<span class="last_payment_amount" data-orig-value="'.$row->last_payment_amount.'">'.$this->transactionUtil->num_f($row->last_payment_amount, true).'</span>';
+                })
                 ->removeColumn('supplier_business_name')
                 ->removeColumn('invoice_received')
                 ->removeColumn('purchase_paid')
@@ -304,7 +316,7 @@ class ReportController extends Controller
                         ->orWhere('contacts.supplier_business_name', 'like', "%{$keyword}%");
                     });
                 })
-                ->rawColumns(['total_purchase', 'total_invoice', 'due', 'name', 'total_purchase_return', 'total_sell_return', 'opening_balance_due'])
+                ->rawColumns(['total_purchase', 'total_invoice', 'due', 'name', 'total_purchase_return', 'total_sell_return', 'opening_balance_due', 'last_payment_amount'])
                 ->make(true);
         }
 

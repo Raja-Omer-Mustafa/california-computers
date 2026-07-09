@@ -52,7 +52,7 @@ $(document).ready(function() {
     }
         },
         columnDefs: [
-            { targets: [5], orderable: false, searchable: false },
+            { targets: [5, 7, 8], orderable: false, searchable: false },
             { targets: [1, 2, 3, 4], searchable: false },
         ],
         columns: [
@@ -63,6 +63,8 @@ $(document).ready(function() {
             { data: 'total_sell_return', name: 'total_sell_return' },
             { data: 'opening_balance_due', name: 'opening_balance_due' },
             { data: 'due', name: 'due' },
+            { data: 'last_payment_amount', name: 'last_payment_amount' },
+            { data: 'last_payment_date', name: 'last_payment_date' },
         ],
         fnDrawCallback: function(oSettings) {
             var total_purchase = sum_table_col($('#supplier_report_tbl'), 'total_purchase');
