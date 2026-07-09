@@ -5157,7 +5157,7 @@ class TransactionUtil extends Util
 
         $with = ['location'];
         if ($line_details) {
-            $with = ['location', 'sell_lines', 'sell_lines.sub_unit', 'sell_lines.product',
+            $with = ['location', 'payment_lines', 'sell_lines', 'sell_lines.sub_unit', 'sell_lines.product',
                 'sell_lines.variations', 'sell_lines.product.unit', 'sell_lines.variations.product_variation',
                 'sell_lines.line_tax', 'purchase_lines', 'purchase_lines.product', 'purchase_lines.variations',
                 'purchase_lines.variations.product_variation', 'purchase_lines.line_tax',
@@ -5177,6 +5177,11 @@ class TransactionUtil extends Util
         $transactions = $transaction_query->get();
         $transaction_types = Transaction::transactionTypes();
         $ledger = [];
+
+        $paymentTypes = [];
+        if ($format == 'format_1' || $format == 'format_3') {
+            $paymentTypes = $this->payment_types(null, true, $business_id);
+        }
 
         $opening_balance = 0;
         $opening_balance_paid = 0;
@@ -5233,6 +5238,17 @@ class TransactionUtil extends Util
 
                 $temp_array['sell_lines'] = $transaction->sell_lines;
                 $temp_array['purchase_lines'] = $transaction->purchase_lines;
+
+                $temp_array['payments'] = [];
+                foreach ($transaction->payment_lines->whereNull('parent_id')->sortBy('paid_on') as $payment) {
+                    $temp_array['payments'][] = $this->formatLedgerPaymentRow(
+                        $payment,
+                        $contact,
+                        $transaction_types,
+                        $paymentTypes,
+                        $transaction->type
+                    );
+                }
             }
 
             $ledger[] = $temp_array;
@@ -5252,7 +5268,7 @@ class TransactionUtil extends Util
             $payments = [];
         }
 
-        $paymentTypes = $this->payment_types(null, true, $business_id);
+        $paymentTypes = ! empty($paymentTypes) ? $paymentTypes : $this->payment_types(null, true, $business_id);
 
         $total_reverse_payment = 0;
 
@@ -5273,33 +5289,18 @@ class TransactionUtil extends Util
                 continue;
             }
 
-            $ref_no = in_array($payment->transaction_type, ['sell', 'sell_return']) ? $payment->invoice_no : $payment->ref_no;
-            $note = $payment->note;
-            if (! empty($ref_no)) {
-                $note .= '<small>'.__('account.payment_for').': '.$ref_no.'</small>';
-            }
 
-            if ($payment->is_advance == 1) {
-                $note .= '<small>'.__('lang_v1.advance_payment').'</small>';
-            }
+            $payment_row = $this->formatLedgerPaymentRow(
+                $payment,
+                $contact,
+                $transaction_types,
+                $paymentTypes,
+                $payment->transaction_type,
+                $payment->location_name ?? ''
+            );
 
-            if ($payment->is_return == 1) {
-                $note .= '<small>('.__('lang_v1.change_return').')</small>';
-            }
 
-            $ledger[] = [
-                'date' => $payment->paid_on,
-                'ref_no' => $payment->payment_ref_no,
-                'type' => $transaction_types['payment'],
-                'location' => $payment->location_name,
-                'payment_status' => '',
-                'total' => '',
-                'payment_method' => ! empty($paymentTypes[$payment->method]) ? $paymentTypes[$payment->method] : '',
-                'payment_method_key' => $payment->method,
-                'debit' => in_array($payment->transaction_type, ['purchase', 'sell_return']) || ($payment->is_advance == 1 && $contact->type == 'supplier') || (in_array($payment->transaction_type, ['sell', 'purchase_return', 'opening_balance']) && $payment->is_return == 1) || $payment->payment_type == 'debit' ? $payment->amount : '',
-                'credit' => (in_array($payment->transaction_type, ['sell', 'purchase_return', 'opening_balance']) || ($payment->is_advance == 1 && in_array($contact->type, ['customer', 'both']))) && $payment->is_return == 0 || $payment->payment_type == 'credit' ? $payment->amount : '',
-                'others' => $note,
-            ];
+            $ledger[] = $payment_row;
         }
 
         $total_excess_advance_payment = $this->__paymentQuery($contact_id, $start, $end, $location_id)
@@ -5494,6 +5495,43 @@ class TransactionUtil extends Util
     }
 
     /**
+     * Formats a payment row for the contact ledger.
+     */
+    private function formatLedgerPaymentRow($payment, $contact, $transaction_types, $paymentTypes, $transaction_type = null, $location_name = '')
+    {
+        $transaction_type = $transaction_type ?? $payment->transaction_type;
+
+        $ref_no = in_array($transaction_type, ['sell', 'sell_return']) ? ($payment->invoice_no ?? '') : ($payment->ref_no ?? '');
+        $note = $payment->note ?? '';
+        if (! empty($ref_no)) {
+            $note .= '<small>'.__('account.payment_for').': '.$ref_no.'</small>';
+        }
+
+        if ($payment->is_advance == 1) {
+            $note .= '<small>'.__('lang_v1.advance_payment').'</small>';
+        }
+
+        if ($payment->is_return == 1) {
+            $note .= '<small>('.__('lang_v1.change_return').')</small>';
+        }
+
+        return [
+            'date' => $payment->paid_on,
+            'ref_no' => $payment->payment_ref_no,
+            'type' => $transaction_types['payment'],
+            'location' => $location_name,
+            'payment_status' => '',
+            'total' => '',
+            'payment_method' => ! empty($paymentTypes[$payment->method]) ? $paymentTypes[$payment->method] : '',
+            'payment_method_key' => $payment->method,
+            'debit' => in_array($transaction_type, ['purchase', 'sell_return']) || ($payment->is_advance == 1 && $contact->type == 'supplier') || (in_array($transaction_type, ['sell', 'purchase_return', 'opening_balance']) && $payment->is_return == 1) || $payment->payment_type == 'debit' ? $payment->amount : '',
+            'credit' => (in_array($transaction_type, ['sell', 'purchase_return', 'opening_balance']) || ($payment->is_advance == 1 && in_array($contact->type, ['customer', 'both']))) && $payment->is_return == 0 || $payment->payment_type == 'credit' ? $payment->amount : '',
+            'others' => $note,
+            'is_payment' => true,
+        ];
+    }
+
+    /**
      * Query to get payment details for a customer
      */
     private function __paymentQuery($contact_id, $start, $end = null, $location_id = null)
@@ -5507,8 +5545,14 @@ class TransactionUtil extends Util
             't.id'
         )
             ->leftJoin('business_locations as bl', 't.location_id', '=', 'bl.id')
-            ->where('transaction_payments.payment_for', $contact_id)
-            ->whereNot('t.type', 'expense'); // use to not diaplay expense in payment list in ledger
+            ->where(function ($query) use ($contact_id) {
+                $query->where('transaction_payments.payment_for', $contact_id)
+                    ->orWhere('t.contact_id', $contact_id);
+            })
+            ->where(function ($query) {
+                $query->whereNull('t.type')
+                    ->orWhere('t.type', '!=', 'expense');
+            });
         //->whereNull('transaction_payments.parent_id');
 
         if (! empty($start) && ! empty($end)) {

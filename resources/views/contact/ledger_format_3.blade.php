@@ -84,6 +84,9 @@
 				<tr @if(!empty($data['transaction_type']) && in_array($data['transaction_type'], ['sell', 'purchase']))
 					class="bg-gray"
 					@if(!empty($for_pdf)) style="color: #000;background-color: #d2d6de!important;" @endif
+				@elseif(!empty($data['is_payment']))
+					class="bg-info-light"
+					@if(!empty($for_pdf)) style="background-color: #e8f4fc!important;" @endif
 				@endif>
 					<td class="row-border">{{@format_datetime($data['date'])}}</td>
 					<td>{{$data['ref_no']}}</td>
@@ -117,6 +120,15 @@
 					<tr>
 						<td colspan="10" class="bg-light-gray" style="padding: 0 20px 10px;">
 							@include('contact.partials.ledger_purchase_lines_details', ['purchase' => (object)$data])
+						</td>
+					</tr>
+				@endif
+
+				@if(!empty($data['payments']))
+					<tr>
+						<td colspan="10" class="bg-light-gray" style="padding: 0 20px 10px;">
+							<strong class="text-muted">@lang('sale.payments')</strong>
+							@include('contact.partials.ledger_transaction_payments', ['payments' => $data['payments'], 'for_pdf' => !empty($for_pdf)])
 						</td>
 					</tr>
 				@endif
