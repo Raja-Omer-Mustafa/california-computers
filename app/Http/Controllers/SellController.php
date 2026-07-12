@@ -365,10 +365,7 @@ class SellController extends Controller
                         }
                         if (! $only_shipments) {
                             if ($row->is_direct_sale == 0) {
-                                if (auth()->user()->can('direct_sell.update')) {
-                                    $html .= '<li><a target="_blank" href="'.action([\App\Http\Controllers\SellController::class, 'edit'], [$row->id]).'"><i class="fas fa-edit"></i> '.__('messages.edit').'</a></li>';
-                                }
-                                else if (auth()->user()->can('sell.update')) {
+                                if (auth()->user()->can('sell.update')) {
                                     $html .= '<li><a target="_blank" href="'.action([\App\Http\Controllers\SellPosController::class, 'edit'], [$row->id]).'"><i class="fas fa-edit"></i> '.__('messages.edit').'</a></li>';
                                 }
                             } elseif ($row->type == 'sales_order') {
