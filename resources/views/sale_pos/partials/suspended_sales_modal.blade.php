@@ -48,7 +48,7 @@
 					            	</a>
 								@endif
 								@if(!auth()->user()->can('sell.update') && auth()->user()->can('edit_pos_payment'))
-									<a href="{{route('edit-pos-payment', ['po' => $sale->id])}}" 
+									<a href="{{route('edit-pos-payment', ['id' => $sale->id])}}" 
 									class="small-box-footer bg-blue p-10">
 									@lang('lang_v1.add_edit_payment') <i class="fas fa-money-bill-alt"></i>
 									</a>
