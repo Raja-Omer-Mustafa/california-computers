@@ -31,4 +31,5 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'external_drive_path' => env('EXTERNAL_DRIVE_PATH')
 ];

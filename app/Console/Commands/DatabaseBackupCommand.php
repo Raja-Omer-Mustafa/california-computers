@@ -22,7 +22,7 @@ class DatabaseBackupCommand extends Command
         $dbUser = config('database.connections.mysql.username');
         $dbPass = config('database.connections.mysql.password');
 
-        $externalPath = rtrim(env('EXTERNAL_DRIVE_PATH'), '/\\');
+        $externalPath = rtrim(config('services.external_drive_path'), '/\\');
 
         if (!is_dir($externalPath)) {
             $this->error("External directory does not exist: {$externalPath}");
