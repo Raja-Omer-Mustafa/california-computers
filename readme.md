@@ -74,3 +74,11 @@ In Conditions:
 Uncheck "Start the task only if the computer is on AC power" if you want it to run anytime.
 
 Click OK.
+
+### Set up Google Cloud credentials
+
+Go to Google Cloud Console → create a project
+Enable Google Drive API
+Create a Service Account (or OAuth client if you need per-user access)
+Download the JSON credentials file, store it e.g. at storage/app/google-drive-credentials.json
+If using a Service Account, share the target Drive folder with the service account's email
