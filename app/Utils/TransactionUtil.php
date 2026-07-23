@@ -5435,7 +5435,7 @@ class TransactionUtil extends Util
         $total_overall_paid_customer = $overall_total_invoice_paid - $overall_total_sell_return_paid + $overall_total_ob_paid; //Add '+ $overall_total_advance_payment'
 
         $total_overall_paid_supplier = $overall_total_purchase_paid - $overall_total_purchase_return_paid;
-        $overall_due = $total_overall_invoice + $total_overall_purchase - $total_overall_paid_customer - $total_overall_paid_supplier - $overall_ledger_discount;
+        $overall_due = $total_overall_invoice + $total_overall_purchase - $total_overall_paid_customer - $total_overall_paid_supplier;
 
         $output = [
             'ledger' => $ledger,
