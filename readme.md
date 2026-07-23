@@ -17,7 +17,7 @@ mkdir -p storage/framework/cache
 
 ### Databse backup to Dropbox
 ```bash
-php artisan db:backup
+php artisan db:backup-dropbox
 ```
 
 ### Dropbox Setup
@@ -26,6 +26,7 @@ php artisan db:backup
     Link: [Dropbox Developer Console](https://www.dropbox.com/developers)
 
 2. How to create an app in Dropbox
+    Go to https://www.dropbox.com/developers/apps
     ![Create app](image.png)
         - Select "Scoped app", then "Full Dropbox", and enter an app name.
         - Go to the "Permissions" tab and select the `files.content.write` permission, then submit.
