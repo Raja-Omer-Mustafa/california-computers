@@ -3487,13 +3487,20 @@ class TransactionUtil extends Util
 
             foreach ($sell_purchases as $line) {
                 if (empty($line->slpl_id)) {
-                    $new_sell_lines[] = $line;
-                } else {
-                    //Skip if already processed.
-                    if (in_array($line->slpl_id, $processed_sell_lines)) {
+                    // Skip if this sell line was already queued (duplicate join rows).
+                    if (in_array($line->id, $processed_sell_lines)) {
                         continue;
                     }
-                    $processed_sell_lines[] = $line->slpl_id;
+                    $processed_sell_lines[] = $line->id;
+                    $new_sell_lines[] = $line;
+                } else {
+                    // Skip if this sell line was already processed.
+                    // Must key by sell_line id: a line can have multiple purchase mappings,
+                    // and using mapping ids remaps the quantity delta once per mapping row.
+                    if (in_array($line->id, $processed_sell_lines)) {
+                        continue;
+                    }
+                    $processed_sell_lines[] = $line->id;
 
                     $total_sold_entry = TransactionSellLinesPurchaseLines::where('sell_line_id', $line->id)
                         ->select(DB::raw('SUM(quantity) AS quantity'))
@@ -3536,11 +3543,13 @@ class TransactionUtil extends Util
                                 ->get();
 
         foreach ($sell_purchase_line as $row) {
-            if ($row->quantity > $decrement_qty) {
+            $row_quantity = $row->quantity;
+
+            if ($row_quantity > $decrement_qty) {
                 PurchaseLine::where('id', $row->purchase_line_id)
                     ->decrement('quantity_sold', $decrement_qty);
 
-                $row->quantity = $row->quantity - $decrement_qty;
+                $row->quantity = $row_quantity - $decrement_qty;
                 $row->save();
                 $decrement_qty = 0;
             } else {
@@ -3549,7 +3558,7 @@ class TransactionUtil extends Util
                 $row->delete();
             }
 
-            $decrement_qty = $decrement_qty - $row->quantity;
+            $decrement_qty = $decrement_qty - $row_quantity;
             if ($decrement_qty <= 0) {
                 break;
             }
