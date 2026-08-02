@@ -3554,11 +3554,11 @@ class TransactionUtil extends Util
                 $decrement_qty = 0;
             } else {
                 PurchaseLine::where('id', $row->purchase_line_id)
-                    ->decrement('quantity_sold', $row_quantity);
+                    ->decrement('quantity_sold', $decrement_qty);
                 $row->delete();
-                $decrement_qty = $decrement_qty - $row_quantity;
             }
 
+            $decrement_qty = $decrement_qty - $row_quantity;
             if ($decrement_qty <= 0) {
                 break;
             }
