@@ -214,9 +214,7 @@
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                <td @if ($type == 'supplier') colspan="6"
-                            @elseif($type == 'customer')
-                                colspan="4" @endif>
+                                <td @if ($type == 'supplier') colspan="6" @elseif($type == 'customer') colspan="4" @endif>
                                     <strong>
                                         @lang('sale.total'):
                                     </strong>
