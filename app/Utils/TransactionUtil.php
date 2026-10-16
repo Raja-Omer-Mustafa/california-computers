@@ -5195,6 +5195,9 @@ class TransactionUtil extends Util
         $opening_balance = 0;
         $opening_balance_paid = 0;
         $ledger_discount = 0;
+        $product_discount = 0;
+        $invoice_discount = 0;
+        $invoice_discount_return = 0;
 
         foreach ($transactions as $transaction) {
             if ($transaction->type == 'opening_balance') {
@@ -5206,6 +5209,16 @@ class TransactionUtil extends Util
 
             if ($transaction->type == 'ledger_discount') {
                 $ledger_discount += $transaction->final_total;
+            }
+
+            //Discount on the whole bill, sells and sell returns kept separate
+            if (in_array($transaction->type, ['sell', 'sell_return'])) {
+                $bill_discount = $transaction->discount_type == 'percentage' ? ($transaction->discount_amount / 100) * $transaction->total_before_tax : $transaction->discount_amount;
+                if ($transaction->type == 'sell') {
+                    $invoice_discount += $bill_discount;
+                } else {
+                    $invoice_discount_return += $bill_discount;
+                }
             }
 
             $temp_array = [
@@ -5235,6 +5248,16 @@ class TransactionUtil extends Util
                     if (! empty($value->sub_unit_id)) {
                         $formated_sell_line = $this->recalculateSellLineTotals($business_id, $value);
                         $transaction->sell_lines[$key] = $formated_sell_line;
+                    }
+                }
+                if ($transaction->type == 'sell') {
+                    foreach ($transaction->sell_lines as $sell_line) {
+                        //Skip returned products: negative quantity lines and returned quantity
+                        $kept_quantity = $sell_line->quantity - $sell_line->quantity_returned;
+                        if ($sell_line->quantity <= 0 || $kept_quantity <= 0) {
+                            continue;
+                        }
+                        $product_discount += $sell_line->get_discount_amount() * $kept_quantity;
                     }
                 }
                 $productUtil = new \App\Utils\ProductUtil();
@@ -5457,6 +5480,9 @@ class TransactionUtil extends Util
             'total_paid' => $total_paid,
             'total_reverse_payment' => $total_reverse_payment,
             'ledger_discount' => $ledger_discount,
+            'product_discount' => $product_discount,
+            'invoice_discount' => $invoice_discount,
+            'invoice_discount_return' => $invoice_discount_return,
 
             'all_total_invoice' => $total_overall_invoice,
             'all_invoice_paid' => $total_overall_paid_customer,
@@ -5533,8 +5559,8 @@ class TransactionUtil extends Util
             'total' => '',
             'payment_method' => ! empty($paymentTypes[$payment->method]) ? $paymentTypes[$payment->method] : '',
             'payment_method_key' => $payment->method,
-            'debit' => in_array($transaction_type, ['purchase', 'sell_return']) || ($payment->is_advance == 1 && $contact->type == 'supplier') || (in_array($transaction_type, ['sell', 'purchase_return', 'opening_balance']) && $payment->is_return == 1) || $payment->payment_type == 'debit' ? $payment->amount : '',
-            'credit' => (in_array($transaction_type, ['sell', 'purchase_return', 'opening_balance']) || ($payment->is_advance == 1 && in_array($contact->type, ['customer', 'both']))) && $payment->is_return == 0 || $payment->payment_type == 'credit' ? $payment->amount : '',
+            'debit' => in_array($transaction_type, ['purchase', 'sell_return']) || ($payment->is_advance == 1 && $contact->type == 'supplier' && $payment->payment_type != 'credit') || (in_array($transaction_type, ['sell', 'purchase_return', 'opening_balance']) && $payment->is_return == 1) || $payment->payment_type == 'debit' ? $payment->amount : '',
+            'credit' => (in_array($transaction_type, ['sell', 'purchase_return', 'opening_balance']) || ($payment->is_advance == 1 && in_array($contact->type, ['customer', 'both']) && $payment->payment_type != 'debit')) && $payment->is_return == 0 || $payment->payment_type == 'credit' ? $payment->amount : '',
             'others' => $note,
             'is_payment' => true,
         ];
