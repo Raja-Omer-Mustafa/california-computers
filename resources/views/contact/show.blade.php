@@ -457,6 +457,39 @@ $(document).on('change', 'input[name="ledger_format"]', function(){
     get_contact_ledger();
 })
 
+//Ledger format 3: show/hide product details
+function set_product_details_visibility(row_index, show) {
+    $('#contact_ledger_div .product_details_row[data-row="' + row_index + '"]').toggleClass('hide', !show);
+    $('#contact_ledger_div .toggle_product_details[data-target="' + row_index + '"] i')
+        .toggleClass('fa-chevron-down', show)
+        .toggleClass('fa-chevron-right', !show);
+}
+
+function update_toggle_all_product_details() {
+    var btn = $('#toggle_all_product_details');
+    var rows = $('#contact_ledger_div .product_details_row');
+    var all_expanded = rows.length > 0 && rows.filter('.hide').length == 0;
+
+    btn.data('expanded', all_expanded);
+    btn.find('span').text(all_expanded ? btn.data('hide-label') : btn.data('show-label'));
+    btn.find('i').toggleClass('fa-chevron-down', all_expanded).toggleClass('fa-chevron-right', !all_expanded);
+}
+
+$(document).on('click', '#contact_ledger_div .toggle_product_details', function() {
+    var row_index = $(this).data('target');
+    var is_hidden = $('#contact_ledger_div .product_details_row[data-row="' + row_index + '"]').first().hasClass('hide');
+    set_product_details_visibility(row_index, is_hidden);
+    update_toggle_all_product_details();
+});
+
+$(document).on('click', '#toggle_all_product_details', function() {
+    var show = !$(this).data('expanded');
+    $('#contact_ledger_div .toggle_product_details').each(function() {
+        set_product_details_visibility($(this).data('target'), show);
+    });
+    update_toggle_all_product_details();
+});
+
 $(document).one('shown.bs.tab', 'a[href="#payments_tab"]', function(){
     get_contact_payments();
 })
