@@ -279,7 +279,7 @@ class ReportController extends Controller
 
                 ->addColumn('due', function ($row) {
                     $total_ledger_discount_purchase = $row->total_ledger_discount_purchase ?? 0;
-                    $total_ledger_discount_sell = $total_ledger_discount_sell ?? 0;
+                    $total_ledger_discount_sell = $row->total_ledger_discount_sell ?? 0;
                     $due = ($row->total_invoice - $row->invoice_received - $total_ledger_discount_sell) - ($row->total_purchase - $row->purchase_paid - $total_ledger_discount_purchase) - ($row->total_sell_return - $row->sell_return_paid) + ($row->total_purchase_return - $row->purchase_return_received);
 
                     if ($row->contact_type == 'supplier') {
