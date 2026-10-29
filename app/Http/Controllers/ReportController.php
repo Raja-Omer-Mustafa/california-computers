@@ -1727,6 +1727,21 @@ class ReportController extends Controller
         $business_id = $request->session()->get('user.business_id');
         if ($request->ajax()) {
             $variation_id = $request->get('variation_id', null);
+            $permitted_locations = auth()->user()->permitted_locations();
+
+            //Simple average of unit prices across all received purchases of the variation,
+            //independent of the report filters; fully returned lines are excluded
+            $avg_location_filter = '';
+            if ($permitted_locations != 'all') {
+                $avg_location_filter = ' AND t2.location_id IN ('.implode(',', array_map('intval', array_merge([0], $permitted_locations))).')';
+            }
+            $avg_purchase_price_query = 'SELECT AVG(pl2.purchase_price_inc_tax) FROM purchase_lines as pl2
+                JOIN transactions as t2 ON pl2.transaction_id = t2.id
+                WHERE pl2.variation_id = purchase_lines.variation_id
+                AND t2.business_id = '.(int) $business_id."
+                AND t2.type = 'purchase' AND t2.status = 'received'
+                AND pl2.quantity > pl2.quantity_returned".$avg_location_filter;
+
             $query = PurchaseLine::join(
                 'transactions as t',
                 'purchase_lines.transaction_id',
@@ -1760,7 +1775,8 @@ class ReportController extends Controller
                         DB::raw('(purchase_lines.quantity - purchase_lines.quantity_returned) as purchase_qty'),
                         'purchase_lines.quantity_adjusted',
                         'u.short_name as unit',
-                        DB::raw('((purchase_lines.quantity - purchase_lines.quantity_returned - purchase_lines.quantity_adjusted) * purchase_lines.purchase_price_inc_tax) as subtotal')
+                        DB::raw('((purchase_lines.quantity - purchase_lines.quantity_returned - purchase_lines.quantity_adjusted) * purchase_lines.purchase_price_inc_tax) as subtotal'),
+                        DB::raw("($avg_purchase_price_query) as avg_purchase_price")
                     )
                     ->groupBy('purchase_lines.id');
             if (! empty($variation_id)) {
@@ -1772,7 +1788,6 @@ class ReportController extends Controller
                 $query->whereBetween(DB::raw('date(transaction_date)'), [$start_date, $end_date]);
             }
 
-            $permitted_locations = auth()->user()->permitted_locations();
             if ($permitted_locations != 'all') {
                 $query->whereIn('t.location_id', $permitted_locations);
             }
@@ -1820,8 +1835,11 @@ class ReportController extends Controller
                 ->editColumn('unit_purchase_price', function ($row) {
                     return $this->transactionUtil->num_f($row->unit_purchase_price, true);
                 })
+                ->editColumn('avg_purchase_price', function ($row) {
+                    return is_null($row->avg_purchase_price) ? '' : $this->transactionUtil->num_f($row->avg_purchase_price, true);
+                })
                 ->editColumn('supplier', '@if(!empty($supplier_business_name)) {{$supplier_business_name}},<br>@endif {{$supplier}}')
-                ->rawColumns(['ref_no', 'unit_purchase_price', 'subtotal', 'purchase_qty', 'quantity_adjusted', 'supplier'])
+                ->rawColumns(['ref_no', 'unit_purchase_price', 'avg_purchase_price', 'subtotal', 'purchase_qty', 'quantity_adjusted', 'supplier'])
                 ->make(true);
         }
 

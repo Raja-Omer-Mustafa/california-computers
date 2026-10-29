@@ -53,7 +53,32 @@ Search these before writing new logic; most domain operations already exist. Glo
 
 **Business settings are JSON blobs.** `business.pos_settings`, `common_settings`, `email_settings`, etc. are JSON columns, and keys may be missing on older businesses. Always use null-coalescing (`$pos_settings['key'] ?? default`) — "Undefined array key" errors from missing setting keys are a recurring bug class here.
 
-**Frontend.** Views in `resources/views/<feature>/`, with page JS in `public/js/` (`pos.js`, `purchase.js`, `functions.js`, `common.js`). Translations are in `lang/<locale>/` (PHP) and `public/js/lang/<locale>.js` (JS).
+**Frontend.** Views in `resources/views/<feature>/`, with page JS in `public/js/` (`pos.js`, `purchase.js`, `functions.js`, `common.js`). Bump `asset_version` in `config/constants.php` after changing JS/CSS — views load scripts with `?v=$asset_v`, so stale cached JS will mismatch updated table columns. Translations are in `lang/<locale>/` (PHP) and `public/js/lang/<locale>.js` (JS).
+
+## Mandatory Multilingual Translation Rule
+
+Applies to every task that adds or changes user-facing text: features, reports, forms, buttons, validation messages, menus, notifications, etc.
+
+Supported languages are the directories under `lang/` (excluding `lang/vendor/`, which holds package translations): currently `ar, ce (Chinese), de, en, es, fr, hi, id, lo, nl, ps, pt, ro, sq, tr, vi`. Check the directory rather than trusting this list. JS strings live separately in `public/js/lang/<locale>.js` and follow the same rule.
+
+Whenever adding a new translation key or modifying an existing translation:
+
+1. Identify every language currently supported by the project.
+2. Add the new key to the corresponding translation file for **every supported language**.
+3. Provide a proper, natural translation in each language rather than copying the English value everywhere.
+4. Preserve consistent terminology and context across all languages — reuse the wording of related existing keys in that file (e.g. how "purchase price" is already translated).
+5. Keep translation keys identical across all language files.
+6. Verify that no supported language is missing the new key.
+7. Never leave untranslated English text in another language's translation file unless English is the intended language.
+8. Do not remove, rename, or overwrite existing translation keys unnecessarily.
+9. Follow the project's existing Laravel localization conventions and directory structure (PHP arrays in `lang/<locale>/<group>.php`; new keys usually go at the end of `lang_v1.php`; match each file's quoting style).
+10. Before completing a task, compare the relevant translation files and report any missing or inconsistent keys.
+
+Non-English files already lag behind `en` by ~150–200 keys in `lang_v1.php` (pre-existing). Report only gaps relevant to your change; don't backfill unless asked. Quick check:
+
+```bash
+php -r '$en=array_keys(include "lang/en/lang_v1.php"); foreach(glob("lang/*/lang_v1.php") as $f){$m=array_diff($en,array_keys(include $f)); echo basename(dirname($f)).": ".count($m)." missing\n";}'
+```
 
 ## Git workflow
 

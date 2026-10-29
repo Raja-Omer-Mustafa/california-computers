@@ -1557,4 +1557,5 @@ return [
     'overall_summary' => 'Overall Summary',
     'last_payment_date' => 'Last Payment Date',
     'last_payment_amount' => 'Last Payment Amount',
+    'avg_purchase_price' => 'Average Purchase Price',
 ];

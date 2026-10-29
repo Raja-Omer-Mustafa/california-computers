@@ -1405,4 +1405,5 @@ return [
     'in_stock' => '有库存',
     'cogs' => 'COGS:',
     'cogs_help_text' => '已售商品成本 = 起始库存（开仓库存） + 采购 − 期末库存（结仓库存）',
+    'avg_purchase_price' => '平均采购价格',
 ];

@@ -1362,5 +1362,6 @@ return [
     'in_stock' => 'en stock',
     'cogs' => 'COGS:',
     'cogs_help_text' => 'Costo de los bienes vendidos = Inventario inicial (stock de apertura) + compras − inventario final (stock de cierre)',
+    'avg_purchase_price' => 'Precio de compra promedio',
 ];
 

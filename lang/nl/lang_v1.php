@@ -1361,4 +1361,5 @@ return [
     'in_stock' => 'op voorraad',
     'cogs' => 'COGS:',
     'cogs_help_text' => 'Kosten van verkochte goederen = Startvoorraad (openingsvoorraad) + aankopen − eindvoorraad (sluitingsvoorraad)',
+    'avg_purchase_price' => 'Gemiddelde aankoopprijs',
 ];

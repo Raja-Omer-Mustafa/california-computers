@@ -1350,4 +1350,5 @@ return [
     'in_stock' => 'në stok',
     'cogs' => 'COGS:',
     'cogs_help_text' => 'Kostoja e Mallrave të Shitura = Inventari fillestar (stoku hapës) + blerjet − inventari përfundimtar (stoku mbyllës)',
+    'avg_purchase_price' => 'Çmimi mesatar i blerjes',
 ];
