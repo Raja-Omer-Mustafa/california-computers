@@ -1401,4 +1401,5 @@ return [
     'in_stock' => 'în stoc',
     'cogs' => 'COGS:',
     'cogs_help_text' => 'Costul bunurilor vândute = Inventarul inițial (stocul de deschidere) + achiziții − inventarul final (stocul de închidere)',
+    'avg_purchase_price' => 'Preț mediu de achiziție',
 ];

@@ -1363,4 +1363,5 @@ return [
     'in_stock' => 'en stock',
     'cogs' => 'COGS:',
     'cogs_help_text' => "Coût des biens vendus = Inventaire initial (stock d'ouverture) + achats − inventaire final (stock de clôture)",
+    'avg_purchase_price' => "Prix d'achat moyen",
 ];

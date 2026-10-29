@@ -1367,4 +1367,5 @@ return [
     'in_stock' => 'stokta var',
     'cogs' => 'COGS:',
     'cogs_help_text' => 'Satılan Malın Maliyeti = Başlangıç envanteri (açılış stoku) + alımlar − bitiş envanteri (kapanış stoku)',
+    'avg_purchase_price' => 'Ortalama Satınalma Fiyatı',
 ];

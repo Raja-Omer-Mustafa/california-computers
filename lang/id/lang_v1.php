@@ -1365,4 +1365,5 @@ return [
     'in_stock' => 'tersedia',
     'cogs' => 'COGS:',
     'cogs_help_text' => 'Biaya Barang Terjual = Persediaan awal (stok pembukaan) + pembelian − persediaan akhir (stok penutupan)',
+    'avg_purchase_price' => 'Harga Pembelian Rata-rata',
 ];

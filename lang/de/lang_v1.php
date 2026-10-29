@@ -1362,4 +1362,5 @@ return [
     'in_stock' => 'auf Lager',
     'cogs' => 'COGS:',
     'cogs_help_text' => 'Kosten der verkauften Waren = Anfangsbestand (Eröffnungsbestand) + Einkäufe − Endbestand (Schlussbestand)',
+    'avg_purchase_price' => 'Durchschnittlicher Einkaufspreis',
 ];

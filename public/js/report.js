@@ -806,6 +806,7 @@ $(document).ready(function() {
             { data: 'purchase_qty', name: 'purchase_lines.quantity' },
             { data: 'quantity_adjusted', name: 'purchase_lines.quantity_adjusted' },
             { data: 'unit_purchase_price', name: 'purchase_lines.purchase_price_inc_tax' },
+            { data: 'avg_purchase_price', name: 'avg_purchase_price', searchable: false },
             { data: 'subtotal', name: 'subtotal', searchable: false },
         ],
         fnDrawCallback: function(oSettings) {
