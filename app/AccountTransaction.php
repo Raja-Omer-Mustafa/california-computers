@@ -113,6 +113,10 @@ class AccountTransaction extends Model
 
                 self::createAccountTransaction($accnt_trans_data);
             }
+        } else {
+            //Account removed from payment, remove its stale account entry
+            AccountTransaction::where('transaction_payment_id', $transaction_payment->id)
+                            ->delete();
         }
     }
 
